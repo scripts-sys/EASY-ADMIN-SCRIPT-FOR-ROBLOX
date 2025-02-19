@@ -1,0 +1,72 @@
+-- Create a ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Create a Frame to hold the buttons
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 300)
+frame.Position = UDim2.new(0.5, -100, 0.5, -150)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BackgroundTransparency = 0.5
+frame.Parent = screenGui
+
+-- Function to create buttons
+local function createButton(name, position, onClick)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 180, 0, 50)
+    button.Position = position
+    button.Text = name
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Parent = frame
+
+    button.MouseButton1Click:Connect(onClick)
+end
+
+-- Fly button functionality
+local flying = false
+local speed = 50
+
+createButton("Fly", UDim2.new(0, 10, 0, 10), function()
+    flying = not flying
+    if flying then
+        local bodyVelocity = Instance.new("BodyVelocity")
+        bodyVelocity.MaxForce = Vector3.new(10000, 10000, 10000)
+        bodyVelocity.Velocity = Vector3.new(0, speed, 0)
+        bodyVelocity.Parent = game.Players.LocalPlayer.Character.HumanoidRootPart
+    else
+        for _, object in ipairs(game.Players.LocalPlayer.Character:GetChildren()) do
+            if object:IsA("BodyVelocity") then
+                object:Destroy()
+            end
+        end
+    end
+end)
+
+-- Spin button functionality
+local spinSpeed = 100
+createButton("Spin", UDim2.new(0, 10, 0, 70), function()
+    local spinTween = game.Players.LocalPlayer.Character.HumanoidRootPart:FindFirstChild("BodyGyro") or Instance.new("BodyGyro")
+    spinTween.MaxTorque = Vector3.new(4000, 4000, 4000)
+    spinTween.CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+    spinTween.Parent = game.Players.LocalPlayer.Character.HumanoidRootPart
+    game:GetService("TweenService"):Create(spinTween, TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, true), {CFrame = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.Angles(0, math.rad(spinSpeed), 0)}):Play()
+end)
+
+-- Teleport tool button functionality
+createButton("Teleport Tool", UDim2.new(0, 10, 0, 130), function()
+    local tool = Instance.new("Tool")
+    tool.Name = "TeleportTool"
+    tool.RequiresHandle = false
+    tool.Parent = game.Players.LocalPlayer.Backpack
+
+    tool.Activated:Connect(function()
+        local mouse = game.Players.LocalPlayer:GetMouse()
+        game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(mouse.Hit.p))
+    end)
+end)
+
+-- Close button functionality
+createButton("Close GUI", UDim2.new(0, 10, 0, 190), function()
+    screenGui:Destroy()
+end)
